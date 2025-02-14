@@ -1,0 +1,58 @@
+#define PIR_PIN 2
+#define TEMP_SENSOR_PIN A0
+#define LED_PIN 13
+
+bool motionDetected = false;
+
+void setup() {
+    pinMode(PIR_PIN, INPUT);
+    pinMode(LED_PIN, OUTPUT);
+    Serial.begin(9600);
+    Serial.println("System is Ready!");
+
+    attachInterrupt(digitalPinToInterrupt(PIR_PIN), motionDetectedISR, RISING);
+}
+
+void loop() {
+    if (motionDetected) {
+        handleMotion();
+    }
+    checkTemperature();
+    delay(2000);
+}
+
+void motionDetectedISR() {
+    motionDetected = true;
+}
+
+void handleMotion() {
+    Serial.println("Motion Detected");
+    blinkLED(2000);
+    motionDetected = false;
+}
+
+void checkTemperature() {
+    float temperature = readTemperature();
+    Serial.print("Temperature: ");
+    Serial.print(temperature);
+    Serial.println(" °C");
+
+    if (temperature > 30.0) {
+        Serial.println("High Temperature Detected");
+        blinkLED(1000);
+    }
+}
+
+float readTemperature() {
+    int sensorValue = analogRead(TEMP_SENSOR_PIN);
+    float voltage = sensorValue * (5.0 / 1023.0);
+    return (voltage - 0.5) * 100;
+}
+
+void blinkLED(int duration) {
+    digitalWrite(LED_PIN, HIGH);
+    Serial.println("LED ON!");
+    delay(duration);
+    digitalWrite(LED_PIN, LOW);
+    Serial.println("LED OFF");
+}
